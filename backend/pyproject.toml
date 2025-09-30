@@ -1,0 +1,19 @@
+[project]
+name = "vercel"
+version = "0.1.0"
+description = "FastAPI backend for testing out Vercel"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[standard]>=0.118.0",
+    "pip>=25.2",
+    "pydantic-settings>=2.11.0",
+    "pymongo>=4.15.1",
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.9.0",
+    "mypy>=1.18.2",
+    "ruff>=0.13.2",
+]
