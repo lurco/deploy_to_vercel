@@ -10,6 +10,7 @@ from typing import Any, Annotated
 
 from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from db import db
 from models.user import User, user_collection
@@ -36,6 +37,14 @@ def create_app() -> FastAPI:
             "name": "HackYeah Team",
             "url": "https://example.com",
         },
+    )
+
+    # Enable CORS for all origins, methods, and headers
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     @app.get(
