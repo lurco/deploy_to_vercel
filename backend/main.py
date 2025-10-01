@@ -12,6 +12,7 @@ from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+from config import settings
 from db import db
 from models.user import User, user_collection
 from api.schemas import UserCreate, UserRead, UserId, parse_object_id
@@ -42,7 +43,7 @@ def create_app() -> FastAPI:
     # Enable CORS for all origins, methods, and headers
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=[settings.WEB_URL],
         allow_methods=["*"],
         allow_headers=["*"],
     )

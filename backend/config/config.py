@@ -6,11 +6,13 @@ from pydantic_settings import BaseSettings
 load_dotenv()
 MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
 DB_NAME = os.getenv("MONGO_DB_NAME", "mydatabase")
+WEB_URL = os.getenv("WEB_URL", "http://localhost:5173")
 
 
 class Settings(BaseSettings):
     MONGODB_URI: str
     MONGO_DB_NAME: str
+    WEB_URL: str
 
     def __repr__(self) -> str:
         """Return a string representation of the model."""
@@ -21,4 +23,4 @@ class Settings(BaseSettings):
         return f"{self.__class__.__name__}({', '.join(attrs)})"
 
 
-settings = Settings(MONGODB_URI=MONGODB_URI, MONGO_DB_NAME=DB_NAME)
+settings = Settings(MONGODB_URI=MONGODB_URI, MONGO_DB_NAME=DB_NAME, WEB_URL=WEB_URL)
