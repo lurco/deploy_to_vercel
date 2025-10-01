@@ -1,3 +1,3 @@
-from .db_init import db
+from .db_init import get_database
 
-db = db
+

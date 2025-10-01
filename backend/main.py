@@ -9,14 +9,15 @@ Run with: uvicorn main:app --reload
 import logging
 from typing import Any, Annotated
 
-from fastapi import FastAPI, HTTPException, Query, status
+from fastapi import FastAPI, HTTPException, Query, status, Depends
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
-from db import db
-from models.user import User, user_collection
+from db import get_database
+from models.user import User, get_user_collection
 from api.schemas import UserCreate, UserRead, UserId, parse_object_id
+from pymongo.asynchronous.database import AsyncDatabase
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -88,7 +89,7 @@ def create_app() -> FastAPI:
         },
         tags=["meta"],
     )
-    async def health() -> JSONResponse:
+    async def health(db: Annotated[AsyncDatabase, Depends(get_database)]) -> JSONResponse:
         """Return service health information.
 
         Tries to ping the MongoDB server. If ping fails, returns HTTP 503.
@@ -133,7 +134,7 @@ def create_app() -> FastAPI:
         },
         tags=["users"],
     )
-    async def create_user(payload: UserCreate) -> UserRead:
+    async def create_user(payload: UserCreate, db: Annotated[AsyncDatabase, Depends(get_database)]) -> UserRead:
         """Create a user document.
 
         Example request body:
@@ -142,9 +143,9 @@ def create_app() -> FastAPI:
               "lastName": "Lovelace"
             }
         """
-        # Validate against the domain model (reusing existing model with aliases)
+        # Validate against the domain model (reusing the existing model with aliases)
         domain = User.model_validate(payload.model_dump(by_alias=True))
-        created = await user_collection.insert_one(domain)
+        created = await get_user_collection(db).insert_one(domain)
         return UserRead.model_validate(created.model_dump(by_alias=True))
 
     @app.get(
@@ -163,12 +164,14 @@ def create_app() -> FastAPI:
         q: Annotated[
             str | None, Query(description="Regex to filter first_name")
         ] = None,
+        db: AsyncDatabase = Depends(get_database),
     ) -> list[UserRead]:
         """List users with optional pagination and filter by first name regex."""
         filt: dict[str, Any] | None = None
         if q:
             filt = {"first_name": {"$regex": q}}
-        docs = await user_collection.find(filter_=filt, skip=skip, limit=limit)
+        users = get_user_collection(db)
+        docs = await users.find(filter_=filt, skip=skip, limit=limit)
         return [UserRead.model_validate(d.model_dump(by_alias=True)) for d in docs]
 
     @app.get(
@@ -186,10 +189,11 @@ def create_app() -> FastAPI:
         },
         tags=["users"],
     )
-    async def get_user(user_id: UserId) -> UserRead:
+    async def get_user(user_id: UserId, db: Annotated[AsyncDatabase, Depends(get_database)]) -> UserRead:
         """Fetch a single user by Mongo ObjectId."""
         oid = parse_object_id(user_id)
-        doc = await user_collection.find_one({"_id": oid})
+        users = get_user_collection(db)
+        doc = await users.find_one({"_id": oid})
         if not doc:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
