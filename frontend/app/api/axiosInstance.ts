@@ -5,6 +5,10 @@ function normalizeBaseUrl(url: string) {
   return url.endsWith("/") ? url.slice(0, -1) : url;
 }
 
+console.log(import.meta.env.VITE_API_BASE_URL);
+
+window.API_URL = import.meta.env.VITE_API_BASE_URL;
+
 const rawBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 const axiosInstance = axios.create({
   baseURL: normalizeBaseUrl(String(rawBase)),
