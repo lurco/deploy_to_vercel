@@ -6,6 +6,7 @@ It also demonstrates how to work with the project's typed MongoDB collections.
 Run with: uvicorn main:app --reload
 """
 
+import logging
 from typing import Any, Annotated
 
 from fastapi import FastAPI, HTTPException, Query, status
@@ -16,6 +17,12 @@ from config import settings
 from db import db
 from models.user import User, user_collection
 from api.schemas import UserCreate, UserRead, UserId, parse_object_id
+
+# Configure logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 
 
 def create_app() -> FastAPI:
@@ -39,6 +46,8 @@ def create_app() -> FastAPI:
             "url": "https://example.com",
         },
     )
+
+    logger.info(f'Enable CORS for URL: {settings.WEB_URL}')
 
     # Enable CORS for all origins, methods, and headers
     app.add_middleware(
